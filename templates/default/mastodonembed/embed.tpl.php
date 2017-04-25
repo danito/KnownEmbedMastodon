@@ -37,25 +37,16 @@ $testembed = '<div class=\'activity-stream activity-stream-headless h-entry\'>
 $body = Idno\Core\site()->triggerEvent('url/expandintext', ['object' => $vars['object']], $vars['object']->body);
 if (preg_match_all('/https?:\/\/[^\s]+\/users\/[^\s]+\/updates\/[^\s]+/i', $body, $matches)) {
     foreach ($matches[0] as $m) {
-        $emb = $m . "/embed";
-        $res = \Idno\Core\Webservice::get($emb);
-        $response = $res['content'];
-       // \Idno\Core\Idno::site()->logging()->log("GET CONTENT: " . var_export($response, true));
+        $url = parse_url($m);
+        $serverAPI = $url['scheme'].'://'.$url['host'].'/api/oembed.json?url='.$param = urlencode($m);
         
-        preg_match_all('/https?:\/\/[^\s]+\/@[^\s]+\/[^\s]+/i', $response, $matches);
-        if(!empty($matches[0][0])){
-            $matches[0][0]= str_replace("\"><span>Apr", "", $matches[0][0]);
-            $newurl = $matches[0][0].".js"; 
-        }
-        
-     //   \Idno\Core\Idno::site()->logging()->log("URL STATUS: " . var_export($newurl, true));
-        $res = \Idno\Core\Webservice::get($newurl);
-        $response = $res['content'];
-        
-        
-        if (!empty($response)) {
-            $response = str_replace("class='", "class='mastodon-embed ", $response);
-            $embedded .= '<div class="mastodon-embed">' . $response . '</div>';
+        $res = \Idno\Core\Webservice::get($serverAPI);
+        $content = json_decode($res['content']);
+        \Idno\Core\Idno::site()->logging()->log("GET CONTENT: " . var_export($content, true));
+              
+        if (!empty($content)) {
+            $html = $content->html;
+            $embedded .= $html;
         }
         //$embedded .= '<iframe src="' . $m . '/embed" style="overflow: hidden" frameborder="0" height="300"  width="600" scrolling="yes" onload="this.height=this.contentWindow.document.body.scrollHeight;"></iframe>';
         //$embedded .= $embedded .= '<script src="' . $m . '.js"></script>';;
@@ -64,12 +55,16 @@ if (preg_match_all('/https?:\/\/[^\s]+\/users\/[^\s]+\/updates\/[^\s]+/i', $body
 //https://mastodon.social/@nxd4n/3391735
 if (preg_match_all('/https?:\/\/[^\s]+\/@[^\s]+\/[^\s]+/i', $body, $matches)) {
     foreach ($matches[0] as $m) {
-        $m = $m . ".js";
-        $res = \Idno\Core\Webservice::get($m);
-        $response = $res['content'];
-        if (!empty($response)) {
-            $response = str_replace("class='", "class='mastodon-embed ", $response);
-            $embedded .= '<div class="mastodon-embed">' . $response . '</div>';
+       $url = parse_url($m);
+        $serverAPI = $url['scheme'].'://'.$url['host'].'/api/oembed.json?url='.$param = urlencode($m);
+        
+        $res = \Idno\Core\Webservice::get($serverAPI);
+        $content = json_decode($res['content']);
+        \Idno\Core\Idno::site()->logging()->log("GET CONTENT: " . var_export($content, true));
+              
+        if (!empty($content)) {
+            $html = $content->html;
+            $embedded .= $html;
         }
         //$embedded .= $embedded .= '<script src="' . $m . '.js"></script>';;
     }
